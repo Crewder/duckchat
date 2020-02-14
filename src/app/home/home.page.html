@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      DuckChat
+    </ion-title>
+
+    <ion-title text-wrap *ngIf="connected">
+      {{userName}}
+    </ion-title >
+
+
+    <ion-buttons slot="end" *ngIf="connected">
+      <ion-button color="light" (click)="logout()">
+        <ion-icon name="log-out" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div>Bienvenue sur duckChat !</div>
+  <ion-button *ngIf="!connected" shape="round" (click)="facebookLogin()" >
+    <ion-icon slot="start" name="logo-facebook"></ion-icon>
+    Connexion avec facebook
+  </ion-button>
+
+  <div *ngIf="connected">
+    <ion-item lines="none" *ngFor="let message of messages">
+      <ion-badge text-wrap *ngIf="message.userId == userId" slot="end" color="tertiary">{{message.text}}</ion-badge>
+      <ion-badge text-wrap *ngIf="message.userId != userId" slot="start" color="secondary">{{message.text}}</ion-badge>
+    </ion-item>
+  </div>
+
+</ion-content>
+
+<ion-footer *ngIf="connected">
+
+  <ion-grid>
+    <ion-row>
+      <ion-col size="10" class="input-col">
+        <ion-input [(ngModel)]="messageText" placeholder="Entrez votre message" type="text"></ion-input>
+      </ion-col> 
+      <ion-col size="2" class="send-col">
+        <ion-button shape="full" (click)="sendMessage()">
+          <ion-icon slot="icon-only" name="send"></ion-icon>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+</ion-footer>
