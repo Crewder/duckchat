@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef,AfterViewChecked, ViewChild, OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 
 import { AngularFireDatabase } from '@angular/fire/database';
@@ -7,12 +7,19 @@ import { AngularFireAuth } from '@angular/fire/auth';
 import * as firebase from 'firebase/app';
 import { Facebook } from '@ionic-native/facebook/ngx'
 
+import * as $ from "jquery";
+
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
 })
-export class HomePage {
+
+export class HomePage implements OnInit, AfterViewChecked{
+  @ViewChild('scrollMe',{static:false})
+
+  private myScrollContainer: ElementRef;
+  
   providerFb: firebase.auth.FacebookAuthProvider;
   providerDb: AngularFireDatabase;
   connected = false;
@@ -20,6 +27,20 @@ export class HomePage {
   userName: any;
   messageText: any;
   messages : any;
+  element: HTMLElement;
+
+  ngOnInit() { 
+    this.scrollToBottom();
+}
+
+  ngAfterViewChecked() {        
+    this.scrollToBottom();        
+}
+scrollToBottom(): void {
+  try {
+      this.myScrollContainer.nativeElement.scrollTop = this.myScrollContainer.nativeElement.scrollHeight;
+  } catch(err) { }                 
+} 
 
   constructor(
     public afDB: AngularFireDatabase,
@@ -31,15 +52,23 @@ export class HomePage {
     this.afAuth.authState.subscribe(auth => {
       if(!auth){
         console.log('Non connecté');
+        $('.titleChat').show();
+        $('ion-toolbar').hide();
+
       }else{
         console.log('Utilisateur connecté: ' + auth.uid);
+        $('.titleChat').hide();
+        $('ion-toolbar').show();
+
         this.connected = true;
         this.userId = auth.uid;
         this.userName = auth.displayName;
         this.getMessages();
+        this.hello();
       }
     });
   }
+
 
   facebookLogin() {
     if (this.platform.is('cordova')) {
@@ -88,6 +117,16 @@ export class HomePage {
     this.connected = false;
   }
 
+
+  hello(){
+    $( "body" ).keydown(function( event ) {
+      if ( event.which == 13 ) {
+        $('.submitButton').click();
+      };
+    });
+  };
+
+
   sendMessage(){
     console.log('MessageText : '+ this.messageText);
     this.afDB.list('Messages/').push({
@@ -99,11 +138,13 @@ export class HomePage {
     this.messageText = '';
   }
 
+
+
+
   getMessages(){
     this.afDB.list('Messages/').snapshotChanges(['child_added']).subscribe(actions => {
       this.messages = [];
       actions.forEach(action =>{
-        console.log('MessageText: ' + action.payload.exportVal().text);
         this.messages.push({
           text: action.payload.exportVal().text,
           userId: action.payload.exportVal().userId,
